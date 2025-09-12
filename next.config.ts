@@ -1,15 +1,13 @@
 import type { NextConfig } from "next";
-const isProd = process.env.NODE_ENV === 'production';
+
 const nextConfig: NextConfig = {
-  /* config options here */
-  /* config for commiting to github pages? */
-    reactStrictMode: true,
+  reactStrictMode: true,
   images: {
-    unoptimized: true, // Disable default image optimization
+    unoptimized: true,
   },
-  assetPrefix: isProd ? '/bEquipmentWebapp/' : '',
-  basePath: isProd ? '/bEquipmentWebapp' : '',
-  output: 'export'
+  assetPrefix: '/bEquipmentWebapp/',   // matches your repo name
+  basePath: '/bEquipmentWebapp',       // matches your repo name
+  output: 'export',                     // enables static export
 };
 
 export default nextConfig;
