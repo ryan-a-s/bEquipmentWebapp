@@ -1,26 +1,29 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAppContext } from '../../context/AppContext';
 import { equipmentList, EquipmentItem } from '../../context/equipment';
-import { isWardLocation, sites, LocationCode } from '../../context/locations';
+import { isWardLocation, sites } from '../../context/locations';
 
 type Props = {
-  onNext: () => void;
+  onNext?: () => void; // optional now
 };
 
 export default function EquipmentStep({ onNext }: Props) {
-  const { location, dependencyStatus, patientWeight, equipment, setEquipment } = useAppContext();
+  const { location, dependencyStatus, patientWeight, equipment, setEquipment } =
+    useAppContext();
+  const router = useRouter();
 
   if (!location || !patientWeight) return <p className="p-4">Missing patient info or location.</p>;
 
   const exactWeight = patientWeight.max ?? patientWeight.min;
-
-  // Determine category lists based on location and dependency
-  let requiredCategories: string[] = [];
-  let optionalCategories: string[] = [];
-
   const isWard = isWardLocation(location);
   const isED = !isWard;
+
+  // Determine categories
+  let requiredCategories: string[] = [];
+  let optionalCategories: string[] = [];
 
   if (isED) {
     requiredCategories = ['Bed', 'Mattress', 'Mat', 'Accessories'];
@@ -35,19 +38,41 @@ export default function EquipmentStep({ onNext }: Props) {
 
   const allCategories = [...requiredCategories, ...optionalCategories];
 
-  // Filter equipment by category, location, and max load
-  const getItemsByCategory = (category: string) =>
-    equipmentList.filter(
-      (item) =>
-        item.category === category &&
-        item.location.includes(location) &&
-        exactWeight <= item.maxLoad
-    );
+  // Automatically select default mattress for selected bed
+  useEffect(() => {
+    if (equipment.Bed) {
+      const defaultMattress = equipmentList.find(
+        (item) =>
+          item.category === 'Mattress' &&
+          item.defaultForBeds?.includes(equipment.Bed as string) // assert as string
+      );
+      if (defaultMattress && equipment.Mattress !== defaultMattress.name) {
+        setEquipment({
+          ...equipment,
+          Mattress: defaultMattress.name,
+        });
+      }
+    }
+  }, [equipment.Bed]);
 
-  // Check if a category has any items available
+  // Filter equipment by category, location, max load
+    const getItemsByCategory = (category: string) =>
+      equipmentList.filter((item) => {
+        // Filter by category, location, max load
+        if (item.category !== category) return false;
+        if (!item.location.includes(location)) return false;
+        if (exactWeight > item.maxLoad) return false;
+
+        // If it's a mattress and a bed is selected, filter by compatibleBeds
+        if (category === 'Mattress' && equipment.Bed) {
+          return item.compatibleBeds?.includes(equipment.Bed);
+        }
+
+        return true;
+      });
+
   const isEmptyCategory = (category: string) => getItemsByCategory(category).length === 0;
 
-  // Handle selecting / deselecting items
   const handleSelect = (category: string, name: string) => {
     setEquipment({
       ...equipment,
@@ -55,10 +80,14 @@ export default function EquipmentStep({ onNext }: Props) {
     });
   };
 
-  // Get procurement text based on site
   const getProcurement = (item: EquipmentItem) => {
     const site = sites.Wellington.includes(location) ? 'Wellington' : 'Hutt';
     return item.procurement[site] ?? 'N/A';
+  };
+
+  const handleContinue = () => {
+    onNext?.(); // update context/stepper if needed
+    router.push('/ordersummary'); // navigate to order summary
   };
 
   return (
@@ -82,7 +111,7 @@ export default function EquipmentStep({ onNext }: Props) {
                 const isDefaultForBed =
                   category === 'Mattress' &&
                   equipment.Bed &&
-                  item.defaultForBeds?.includes(equipment.Bed);
+                  item.defaultForBeds?.includes(equipment.Bed as string);
 
                 return (
                   <button
@@ -110,7 +139,7 @@ export default function EquipmentStep({ onNext }: Props) {
       })}
 
       <button
-        onClick={onNext}
+        onClick={handleContinue}
         className="mt-6 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
       >
         Continue

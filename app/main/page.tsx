@@ -52,9 +52,7 @@ export default function Main() {
         title: 'Weight',
         completed:
           !!patientWeight && (location && isWardLocation(location) ? !!dependencyStatus : true),
-        summary:
-          patientWeight?.min &&
-          `${patientWeight.min}kg${isWardLocation(location) && dependencyStatus ? ' - ' + dependencyStatus : ''}`,
+        summary: getWeightSummary(), // use helper here
       },
       {
         id: 4,
@@ -62,9 +60,10 @@ export default function Main() {
         completed: Object.keys(equipment).length > 0,
         summary: Object.keys(equipment).length
           ? `${Object.keys(equipment).length} items selected`
-          : '', // counts all categories selected, no messy names
+          : '',
       },
     ];
+
 
 
   const handleNextStep = (currentId: number) => {

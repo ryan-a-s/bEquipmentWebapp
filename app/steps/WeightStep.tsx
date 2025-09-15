@@ -24,7 +24,9 @@ export default function WeightStep({ onNext }: Props) {
     setDependencyStatus,
   } = useAppContext();
 
-  const [inputWeight, setInputWeight] = useState<string>(patientWeight?.min?.toString() ?? "");
+  const [inputWeight, setInputWeight] = useState<string>(
+    patientWeight?.min?.toString() ?? ""
+  );
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [showAlert, setShowAlert] = useState(false);
   const [nextWeight, setNextWeight] = useState<PatientWeight | null>(null);
@@ -38,17 +40,23 @@ export default function WeightStep({ onNext }: Props) {
     if (isWard) {
       const weightNum = parseInt(inputWeight, 10);
       if (isNaN(weightNum) || weightNum <= 0) return;
+
+      // Store exact weight as min and max (for equipment filtering)
       setPatientWeight({ min: weightNum, max: weightNum });
       onNext();
     } else if (isED) {
       if (selectedCategory === null) return;
+
       const category = edWeightCategories[selectedCategory];
+
       // Alert condition: Hutt ED patients ≥ 250kg
       if (location === "F3S638-G" && category.min >= 250) {
         setNextWeight({ min: category.min, max: category.max });
         setShowAlert(true);
         return;
       }
+
+      // Store selected category for ED
       setPatientWeight({ min: category.min, max: category.max });
       onNext();
     }
@@ -66,6 +74,7 @@ export default function WeightStep({ onNext }: Props) {
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Patient Weight</h2>
 
+      {/* Ward input */}
       {isWard && (
         <>
           <input
@@ -104,6 +113,7 @@ export default function WeightStep({ onNext }: Props) {
         </>
       )}
 
+      {/* ED weight categories */}
       {isED && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-md">
           {edWeightCategories.map((cat, idx) => (
@@ -135,8 +145,9 @@ export default function WeightStep({ onNext }: Props) {
           <div className="bg-white rounded-lg p-6 w-full max-w-sm text-center shadow-lg">
             <h2 className="text-lg font-bold mb-4">Alert</h2>
             <p className="mb-6">
-              Any patient over 250kg at Hutt Emergency will need ICU bedspace – check availability. If
-              not available, consider diverting patient / ambulance to Wellington.
+              Any patient over 250kg at Hutt Emergency will need ICU bedspace – check
+              availability. If not available, consider diverting patient / ambulance to
+              Wellington.
             </p>
             <button
               onClick={handleAlertOk}
