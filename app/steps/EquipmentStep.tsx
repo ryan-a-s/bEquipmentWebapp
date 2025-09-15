@@ -15,10 +15,8 @@ export default function EquipmentStep({ onNext }: Props) {
     useAppContext();
   const router = useRouter();
 
-  if (!location || !patientWeight) return <p className="p-4">Missing patient info or location.</p>;
-
-  const exactWeight = patientWeight.max ?? patientWeight.min;
-  const isWard = isWardLocation(location);
+  const exactWeight = patientWeight?.max ?? patientWeight?.min;
+  const isWard = location ? isWardLocation(location) : false;
   const isED = !isWard;
 
   // Determine categories
@@ -38,42 +36,41 @@ export default function EquipmentStep({ onNext }: Props) {
 
   const allCategories = [...requiredCategories, ...optionalCategories];
 
-  // Automatically select default mattress for selected bed
-    useEffect(() => {
-      // only run effect if we have a Bed
-      if (equipment.Bed) {
-        const defaultMattress = equipmentList.find(
-          (item) =>
-            item.category === 'Mattress' &&
-            item.defaultForBeds?.includes(equipment.Bed as string)
-        );
-        if (defaultMattress && equipment.Mattress !== defaultMattress.name) {
-          setEquipment({
-            ...equipment,
-            Mattress: defaultMattress.name,
-          });
-        }
-      }
-    }, [equipment.Bed, equipment.Mattress, setEquipment]);
+  // 🔹 Move useEffect here unconditionally
+  useEffect(() => {
+    if (!equipment.Bed) return;
 
-// Now safe to return early if no location/weight
-if (!location || !patientWeight) return <p className="p-4">Missing patient info or location.</p>;
+    const defaultMattress = equipmentList.find(
+      (item) =>
+        item.category === 'Mattress' &&
+        item.defaultForBeds?.includes(equipment.Bed as string)
+    );
 
-  // Filter equipment by category, location, max load
-    const getItemsByCategory = (category: string) =>
-      equipmentList.filter((item) => {
-        // Filter by category, location, max load
-        if (item.category !== category) return false;
-        if (!item.location.includes(location)) return false;
-        if (exactWeight > item.maxLoad) return false;
-
-        // If it's a mattress and a bed is selected, filter by compatibleBeds
-        if (category === 'Mattress' && equipment.Bed) {
-          return item.compatibleBeds?.includes(equipment.Bed);
-        }
-
-        return true;
+    if (defaultMattress && equipment.Mattress !== defaultMattress.name) {
+      setEquipment({
+        ...equipment,
+        Mattress: defaultMattress.name,
       });
+    }
+  }, [equipment.Bed, equipment.Mattress, setEquipment]);
+
+  // Early return if critical data missing
+  if (!location || !patientWeight) return <p className="p-4">Missing patient info or location.</p>;
+
+  // Filter equipment
+  const getItemsByCategory = (category: string) =>
+    equipmentList.filter((item) => {
+      if (item.category !== category) return false;
+      if (!item.location.includes(location)) return false;
+      if (exactWeight! > item.maxLoad) return false;
+
+      // For mattresses, filter by compatible beds
+      if (category === 'Mattress' && equipment.Bed) {
+        return item.compatibleBeds?.includes(equipment.Bed);
+      }
+
+      return true;
+    });
 
   const isEmptyCategory = (category: string) => getItemsByCategory(category).length === 0;
 
