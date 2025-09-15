@@ -1,139 +1,142 @@
-'use client';
-import { useState } from 'react';
-import { useAppContext, DependencyStatus } from '../../context/AppContext';
+"use client";
 
-interface WeightStepProps {
+import { useState } from "react";
+import { useAppContext, PatientWeight } from "../../context/AppContext";
+import { LocationCode, isWardLocation } from "../../context/locations";
+
+type Props = {
   onNext: () => void;
-}
+};
 
-export default function WeightStep({ onNext }: WeightStepProps) {
-  const { location, patientWeight, setPatientWeight, dependencyStatus, setDependencyStatus } =
-    useAppContext();
+// Weight categories for Emergency Departments
+const edWeightCategories: { label: string; min: number; max: number | null }[] = [
+  { label: "180 – 250 kg", min: 180, max: 250 },
+  { label: "250 – 350 kg", min: 250, max: 350 },
+  { label: "350+ kg", min: 350, max: null },
+];
 
-  const [localWeight, setLocalWeight] = useState(patientWeight?.min || '');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(
-    patientWeight?.max ? `${patientWeight.min}-${patientWeight.max}` : null
-  );
-  const [localDependency, setLocalDependency] = useState<DependencyStatus>(dependencyStatus);
+export default function WeightStep({ onNext }: Props) {
+  const {
+    location,
+    patientWeight,
+    setPatientWeight,
+    dependencyStatus,
+    setDependencyStatus,
+  } = useAppContext();
+
+  const [inputWeight, setInputWeight] = useState<string>(patientWeight?.min?.toString() ?? "");
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [showAlert, setShowAlert] = useState(false);
-  const [nextWeight, setNextWeight] = useState<number | null>(null);
+  const [nextWeight, setNextWeight] = useState<PatientWeight | null>(null);
 
-  const isWard = location?.includes('Ward');
-  const isED = location?.includes('Emergency');
+  if (!location) return <p className="p-4">No location selected.</p>;
 
-  const categories = [
-    { label: '180–250kg', min: 180, max: 250 },
-    { label: '250–350kg', min: 250, max: 350 },
-    { label: '350+ kg', min: 350, max: null },
-  ];
+  const isWard = isWardLocation(location);
+  const isED = !isWard;
 
   const handleNext = () => {
     if (isWard) {
-      if (!localDependency || !localWeight) return;
-      const weightNum = Number(localWeight);
-
-      // Trigger alert for specific conditions
-      if (weightNum >= 250 && location === 'Hutt Emergency Department') {
-        setNextWeight(weightNum);
-        setShowAlert(true);
-        return;
-      }
-
-      setDependencyStatus(localDependency);
+      const weightNum = parseInt(inputWeight, 10);
+      if (isNaN(weightNum) || weightNum <= 0) return;
       setPatientWeight({ min: weightNum, max: weightNum });
       onNext();
-    } else if (isED && selectedCategory) {
-      const cat = categories.find((c) => c.label === selectedCategory)!;
-
-      // Alert for ED weight
-      if ((cat.min >= 250 || (cat.max && cat.max >= 250)) && location === 'Hutt Emergency Department') {
-        setNextWeight(cat.min);
+    } else if (isED) {
+      if (selectedCategory === null) return;
+      const category = edWeightCategories[selectedCategory];
+      // Alert condition: Hutt ED patients ≥ 250kg
+      if (location === "F3S638-G" && category.min >= 250) {
+        setNextWeight({ min: category.min, max: category.max });
         setShowAlert(true);
         return;
       }
-
-      setPatientWeight({ min: cat.min, max: cat.max });
+      setPatientWeight({ min: category.min, max: category.max });
       onNext();
     }
   };
 
   const handleAlertOk = () => {
-    if (nextWeight !== null) {
-      setPatientWeight({ min: nextWeight, max: nextWeight });
-      setNextWeight(null);
+    if (nextWeight) {
+      setPatientWeight(nextWeight);
+      setShowAlert(false);
+      onNext();
     }
-    setShowAlert(false);
-    onNext();
   };
 
   return (
-    <div className="space-y-4">
-      {isED && (
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">Patient Weight</h2>
+
+      {isWard && (
         <>
-          <label>Select weight category:</label>
-          <div className="space-y-2">
-            {categories.map((c) => (
+          <input
+            type="number"
+            value={inputWeight}
+            onChange={(e) => setInputWeight(e.target.value)}
+            placeholder="Enter weight in kg"
+            className="border p-2 rounded w-full max-w-xs"
+          />
+
+          <div className="mt-4">
+            <h3 className="font-semibold mb-2">Patient Dependency</h3>
+            <div className="flex gap-4">
               <button
-                key={c.label}
-                onClick={() => setSelectedCategory(c.label)}
-                className={`px-4 py-2 border rounded ${
-                  selectedCategory === c.label ? 'bg-blue-200' : 'bg-white'
+                onClick={() => setDependencyStatus("independent")}
+                className={`px-4 py-2 rounded-lg ${
+                  dependencyStatus === "independent"
+                    ? "bg-blue-200 border border-blue-600"
+                    : "bg-gray-100 hover:bg-gray-200"
                 }`}
               >
-                {c.label}
+                Independent
               </button>
-            ))}
+              <button
+                onClick={() => setDependencyStatus("dependent")}
+                className={`px-4 py-2 rounded-lg ${
+                  dependencyStatus === "dependent"
+                    ? "bg-blue-200 border border-blue-600"
+                    : "bg-gray-100 hover:bg-gray-200"
+                }`}
+              >
+                Dependent
+              </button>
+            </div>
           </div>
         </>
       )}
 
-      {isWard && (
-        <>
-          <label>Enter exact weight:</label>
-          <input
-            type="number"
-            value={localWeight}
-            onChange={(e) => setLocalWeight(e.target.value)}
-            className="border p-2 w-full"
-          />
-
-          <label className="mt-2">Patient Dependency Status:</label>
-          <div className="flex gap-4 mt-1">
+      {isED && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-md">
+          {edWeightCategories.map((cat, idx) => (
             <button
-              onClick={() => setLocalDependency('independent')}
-              className={`px-4 py-2 border rounded ${
-                localDependency === 'independent' ? 'bg-blue-200' : 'bg-white'
+              key={idx}
+              onClick={() => setSelectedCategory(idx)}
+              className={`p-2 border rounded ${
+                selectedCategory === idx
+                  ? "bg-blue-200 border-blue-600"
+                  : "bg-gray-100 hover:bg-gray-200"
               }`}
             >
-              Independent
+              {cat.label}
             </button>
-            <button
-              onClick={() => setLocalDependency('dependent')}
-              className={`px-4 py-2 border rounded ${
-                localDependency === 'dependent' ? 'bg-blue-200' : 'bg-white'
-              }`}
-            >
-              Dependent
-            </button>
-          </div>
-        </>
+          ))}
+        </div>
       )}
 
       <button
         onClick={handleNext}
-        className="mt-4 bg-green-600 text-white px-4 py-2 rounded"
-        disabled={(isED && !selectedCategory) || (isWard && (!localWeight || !localDependency))}
+        className="mt-6 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
       >
-        Next
+        Continue
       </button>
 
+      {/* Alert modal for Hutt ED */}
       {showAlert && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-sm text-center shadow-lg">
             <h2 className="text-lg font-bold mb-4">Alert</h2>
             <p className="mb-6">
-              Any patient over 250kg needing hoisting at Hutt Emergency will need to be in an ICU bedspace.
-              Check availability. If unavailable, consider diverting patient/ambulance to Wellington.
+              Any patient over 250kg at Hutt Emergency will need ICU bedspace – check availability. If
+              not available, consider diverting patient / ambulance to Wellington.
             </p>
             <button
               onClick={handleAlertOk}

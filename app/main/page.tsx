@@ -5,17 +5,72 @@ import PatientIDStep from '../steps/PatientIDStep';
 import WeightStep from '../steps/WeightStep';
 import EquipmentStep from '../steps/EquipmentStep';
 import { useAppContext } from '../../context/AppContext';
+import { getLocationLabel, isWardLocation } from '../../context/locations';
 
 export default function Main() {
   const [activeStep, setActiveStep] = useState(1);
-  const { location, patientId, patientWeight, dependencyStatus, equipment } = useAppContext();
+  const { location, secondaryLocation, patientId, patientWeight, dependencyStatus, equipment } =
+    useAppContext();
 
-  const steps = [
-    { id: 1, title: 'Location', completed: !!location },
-    { id: 2, title: 'Patient ID', completed: !!patientId },
-    { id: 3, title: 'Weight', completed: !!patientWeight && (location?.includes('Ward') ? !!dependencyStatus : true) },
-    { id: 4, title: 'Equipment', completed: Object.keys(equipment).length > 0 },
-  ];
+  const getWeightSummary = () => {
+    if (!patientWeight) return '';
+    if (location && !isWardLocation(location)) {
+      // ED: show weight category
+      if (patientWeight.min && patientWeight.max)
+        return `${patientWeight.min} – ${patientWeight.max} kg`;
+      return `${patientWeight.min}+ kg`;
+    }
+    // Ward: show exact weight and dependency if set
+    return `${patientWeight.min}kg${dependencyStatus ? ' - ' + dependencyStatus : ''}`;
+  };
+
+  const getEquipmentSummary = () => {
+    if (!equipment || Object.keys(equipment).length === 0) return '';
+    // display category: item selected
+    return Object.entries(equipment)
+      .map(([category, item]) => `${category}: ${item}`)
+      .join(', ');
+  };
+
+    const steps = [
+      {
+        id: 1,
+        title: 'Location',
+        completed: !!location,
+        summary: location
+          ? `${getLocationLabel(location)}${secondaryLocation ? ' - ' + secondaryLocation : ''}`
+          : '',
+      },
+      {
+        id: 2,
+        title: 'Patient ID',
+        completed: !!patientId,
+        summary: patientId ?? '',
+      },
+      {
+        id: 3,
+        title: 'Weight',
+        completed:
+          !!patientWeight && (location && isWardLocation(location) ? !!dependencyStatus : true),
+        summary:
+          patientWeight?.min &&
+          `${patientWeight.min}kg${isWardLocation(location) && dependencyStatus ? ' - ' + dependencyStatus : ''}`,
+      },
+      {
+        id: 4,
+        title: 'Equipment',
+        completed: Object.keys(equipment).length > 0,
+        summary: Object.keys(equipment).length
+          ? `${Object.keys(equipment).length} items selected`
+          : '', // counts all categories selected, no messy names
+      },
+    ];
+
+
+  const handleNextStep = (currentId: number) => {
+    const nextStep = currentId + 1;
+    if (nextStep <= steps.length) setActiveStep(nextStep);
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-4">
@@ -25,16 +80,19 @@ export default function Main() {
             className="w-full p-3 text-left font-bold flex justify-between items-center bg-gray-100 hover:bg-gray-200"
             onClick={() => setActiveStep(activeStep === step.id ? 0 : step.id)}
           >
-            <span>{`Step ${step.id}: ${step.title}`}</span>
+            <span>
+              {`Step ${step.id}: ${step.title}`}
+              {step.summary && <span className="text-gray-500 ml-2">({step.summary})</span>}
+            </span>
             {step.completed && <span className="text-green-600">✅</span>}
           </button>
 
           {activeStep === step.id && (
             <div className="p-4 bg-white">
-              {step.id === 1 && <LocationStep onNext={() => setActiveStep(2)} />}
-              {step.id === 2 && <PatientIDStep onNext={() => setActiveStep(3)} />}
-              {step.id === 3 && <WeightStep onNext={() => setActiveStep(4)} />}
-              {step.id === 4 && <EquipmentStep />}
+              {step.id === 1 && <LocationStep onNext={() => handleNextStep(1)} />}
+              {step.id === 2 && <PatientIDStep onNext={() => handleNextStep(2)} />}
+              {step.id === 3 && <WeightStep onNext={() => handleNextStep(3)} />}
+              {step.id === 4 && <EquipmentStep onNext={() => handleNextStep(4)} />}
             </div>
           )}
         </div>

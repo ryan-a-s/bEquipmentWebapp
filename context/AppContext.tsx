@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode } from "react";
+import { LocationCode } from "./locations";
 
 // Patient weight type (exact or range)
 export type PatientWeight = { min: number; max: number | null };
@@ -8,36 +9,37 @@ export type PatientWeight = { min: number; max: number | null };
 // Dependency status type
 export type DependencyStatus = "dependent" | "independent" | null;
 
-// Equipment type
-import { EquipmentItem } from "./equipment";
-
-// Equipment selection: category → selected item name
-export type EquipmentSelection = Record<string, string>;
+// Equipment selection
+export type EquipmentSelection = Record<string, string | undefined>;
 
 type AppContextType = {
-  location: string | null;
+  location: LocationCode | null;
   secondaryLocation: string | null;
   patientId: string | null;
   patientWeight: PatientWeight | null;
   dependencyStatus: DependencyStatus;
   equipment: EquipmentSelection;
-  setLocation: (value: string | null) => void;
+  setLocation: (value: LocationCode | null) => void;
   setSecondaryLocation: (value: string | null) => void;
   setPatientId: (value: string | null) => void;
   setPatientWeight: (value: PatientWeight | null) => void;
   setDependencyStatus: (value: DependencyStatus) => void;
-  setEquipment: React.Dispatch<React.SetStateAction<EquipmentSelection>>;
+  setEquipment: (updates: EquipmentSelection) => void;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [location, setLocation] = useState<string | null>(null);
+  const [location, setLocationState] = useState<LocationCode | null>(null);
   const [secondaryLocation, setSecondaryLocation] = useState<string | null>(null);
   const [patientId, setPatientId] = useState<string | null>(null);
   const [patientWeight, setPatientWeight] = useState<PatientWeight | null>(null);
   const [dependencyStatus, setDependencyStatus] = useState<DependencyStatus>(null);
-  const [equipment, setEquipment] = useState<EquipmentSelection>({});
+  const [equipment, setEquipmentState] = useState<EquipmentSelection>({});
+
+  const setEquipment = (updates: EquipmentSelection) => {
+    setEquipmentState((prev) => ({ ...prev, ...updates }));
+  };
 
   return (
     <AppContext.Provider
@@ -48,7 +50,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         patientWeight,
         dependencyStatus,
         equipment,
-        setLocation,
+        setLocation: setLocationState,
         setSecondaryLocation,
         setPatientId,
         setPatientWeight,
@@ -63,8 +65,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 export function useAppContext() {
   const context = useContext(AppContext);
-  if (!context) {
-    throw new Error("useAppContext must be used inside AppProvider");
-  }
+  if (!context) throw new Error("useAppContext must be used inside AppProvider");
   return context;
 }
