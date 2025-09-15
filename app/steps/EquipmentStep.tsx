@@ -39,21 +39,25 @@ export default function EquipmentStep({ onNext }: Props) {
   const allCategories = [...requiredCategories, ...optionalCategories];
 
   // Automatically select default mattress for selected bed
-  useEffect(() => {
-    if (equipment.Bed) {
-      const defaultMattress = equipmentList.find(
-        (item) =>
-          item.category === 'Mattress' &&
-          item.defaultForBeds?.includes(equipment.Bed as string) // assert as string
-      );
-      if (defaultMattress && equipment.Mattress !== defaultMattress.name) {
-        setEquipment({
-          ...equipment,
-          Mattress: defaultMattress.name,
-        });
+    useEffect(() => {
+      // only run effect if we have a Bed
+      if (equipment.Bed) {
+        const defaultMattress = equipmentList.find(
+          (item) =>
+            item.category === 'Mattress' &&
+            item.defaultForBeds?.includes(equipment.Bed as string)
+        );
+        if (defaultMattress && equipment.Mattress !== defaultMattress.name) {
+          setEquipment({
+            ...equipment,
+            Mattress: defaultMattress.name,
+          });
+        }
       }
-    }
-  }, [equipment.Bed]);
+    }, [equipment.Bed, equipment.Mattress, setEquipment]);
+
+// Now safe to return early if no location/weight
+if (!location || !patientWeight) return <p className="p-4">Missing patient info or location.</p>;
 
   // Filter equipment by category, location, max load
     const getItemsByCategory = (category: string) =>
