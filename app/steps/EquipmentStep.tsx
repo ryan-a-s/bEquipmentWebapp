@@ -7,7 +7,7 @@ import { equipmentList, EquipmentItem } from '../../context/equipment';
 import { isWardLocation, sites } from '../../context/locations';
 
 type Props = {
-  onNext?: () => void; // optional now
+  onNext?: () => void;
 };
 
 export default function EquipmentStep({ onNext }: Props) {
@@ -15,16 +15,22 @@ export default function EquipmentStep({ onNext }: Props) {
     useAppContext();
   const router = useRouter();
 
-  const exactWeight = patientWeight?.max ?? patientWeight?.min;
-  const isWard = location ? isWardLocation(location) : false;
+  // bail out if critical context missing
+  if (!location || !patientWeight)
+    return <p className="p-4">Missing patient info or location.</p>;
+
+  const exactWeight = patientWeight.max ?? patientWeight.min;
+  const isWard = isWardLocation(location);
   const isED = !isWard;
 
-  // Determine categories
+  // ----------------
+  // Category setup
+  // ----------------
   let requiredCategories: string[] = [];
   let optionalCategories: string[] = [];
 
   if (isED) {
-    requiredCategories = ['Bed', 'Mattress', 'Mat', 'Accessories'];
+    requiredCategories = ['Bed', 'Mattress', 'Mat'];
     optionalCategories = ['Commode'];
   } else if (isWard && dependencyStatus === 'independent') {
     requiredCategories = ['Bed', 'Mattress', 'Commode'];
@@ -34,9 +40,16 @@ export default function EquipmentStep({ onNext }: Props) {
     optionalCategories = ['Wheelchairs', 'Bedside Chairs'];
   }
 
+  // Show Accessories only if Mat or Hoversling is selected
+  if (equipment.Mat || equipment.Slings === 'Hoversling') {
+    requiredCategories.push('Accessories');
+  }
+
   const allCategories = [...requiredCategories, ...optionalCategories];
 
-  // 🔹 Move useEffect here unconditionally
+  // ----------------
+  // Auto-select default mattress if bed chosen
+  // ----------------
   useEffect(() => {
     if (!equipment.Bed) return;
 
@@ -46,7 +59,12 @@ export default function EquipmentStep({ onNext }: Props) {
         item.defaultForBeds?.includes(equipment.Bed as string)
     );
 
-    if (defaultMattress && equipment.Mattress !== defaultMattress.name) {
+    if (
+      defaultMattress &&
+      (!equipment.Mattress ||
+        !equipmentList.find((m) => m.name === equipment.Mattress)
+          ?.compatibleBeds?.includes(equipment.Bed as string))
+    ) {
       setEquipment({
         ...equipment,
         Mattress: defaultMattress.name,
@@ -54,25 +72,58 @@ export default function EquipmentStep({ onNext }: Props) {
     }
   }, [equipment.Bed, equipment.Mattress, setEquipment]);
 
-  // Early return if critical data missing
-  if (!location || !patientWeight) return <p className="p-4">Missing patient info or location.</p>;
+  // ----------------
+  // Auto-select pumps based on logic
+  // ----------------
+  useEffect(() => {
+    let selectedPump: string | undefined;
 
-  // Filter equipment
-  const getItemsByCategory = (category: string) =>
-    equipmentList.filter((item) => {
+    if (equipment.Slings === 'Hoversling') {
+      selectedPump = '2x Hovertech Pumps';
+    } else if (equipment.Mat) {
+      if (exactWeight >= 300) {
+        selectedPump = '2x Pumps';
+      } else {
+        selectedPump = 'Pump';
+      }
+    }
+
+    if (selectedPump && equipment.Accessories !== selectedPump) {
+      setEquipment({
+        ...equipment,
+        Accessories: selectedPump,
+      });
+    }
+  }, [equipment.Mat, equipment.Slings, exactWeight, setEquipment]);
+
+  // ----------------
+  // Filter equipment by category
+  // ----------------
+  const getItemsByCategory = (category: string) => {
+    return equipmentList.filter((item) => {
       if (item.category !== category) return false;
-      if (!item.location.includes(location)) return false;
-      if (exactWeight! > item.maxLoad) return false;
+      if (!item.location.includes(location!)) return false;
 
-      // For mattresses, filter by compatible beds
+      // Pumps: allow all, regardless of maxLoad
+      if (item.maxLoad > 0 && exactWeight > item.maxLoad) return false;
+
       if (category === 'Mattress' && equipment.Bed) {
         return item.compatibleBeds?.includes(equipment.Bed);
       }
 
+      if (category === 'Accessories') {
+        // only return the pump selected by logic (if any)
+        if (['Pump', '2x Pumps', '2x Hovertech Pumps'].includes(item.name)) {
+          return item.name === equipment.Accessories;
+        }
+      }
+
       return true;
     });
+  };
 
-  const isEmptyCategory = (category: string) => getItemsByCategory(category).length === 0;
+  const isEmptyCategory = (category: string) =>
+    getItemsByCategory(category).length === 0;
 
   const handleSelect = (category: string, name: string) => {
     setEquipment({
@@ -82,17 +133,31 @@ export default function EquipmentStep({ onNext }: Props) {
   };
 
   const getProcurement = (item: EquipmentItem) => {
-    const site = sites.Wellington.includes(location) ? 'Wellington' : 'Hutt';
+    const site = sites.Wellington.includes(location!)
+      ? 'Wellington'
+      : 'Hutt';
     return item.procurement[site] ?? 'N/A';
   };
 
   const handleContinue = () => {
-    onNext?.(); // update context/stepper if needed
-    router.push('/ordersummary'); // navigate to order summary
+    onNext?.();
+    router.push('/ordersummary');
   };
 
+  // ----------------
+  // Render
+  // ----------------
   return (
+    
     <div className="p-4 space-y-6">
+          {/* Info banner */}
+          <div className="p-4 mb-4 border-l-4 border-yellow-400 bg-yellow-50 text-yellow-800 rounded">
+            <h3 className="font-semibold mb-1">Important:</h3>
+            <p className="text-sm">
+              If your patient is likely to be in ED for an extended period of time, contact
+              the M&H specialist for advice on other equipment requirements.
+            </p>
+          </div>
       {allCategories.map((category) => {
         const items = getItemsByCategory(category);
 
@@ -103,6 +168,7 @@ export default function EquipmentStep({ onNext }: Props) {
             {isEmptyCategory(category) && (
               <p className="text-gray-500 mb-2">
                 No available {category.toLowerCase()} under the patient’s weight limit.
+                Please get in contact with moving and handling specialist.
               </p>
             )}
 
@@ -125,12 +191,16 @@ export default function EquipmentStep({ onNext }: Props) {
                     }`}
                   >
                     <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-gray-500">Max load: {item.maxLoad}kg</p>
+                    <p className="text-sm text-gray-500">
+                      Max load: {item.maxLoad > 0 ? `${item.maxLoad}kg` : 'N/A'}
+                    </p>
                     <p className="text-sm text-gray-500">
                       Procurement:{' '}
                       {isDefaultForBed ? 'Included with bed' : getProcurement(item)}
                     </p>
-                    {item.notes && <p className="text-xs text-gray-400 mt-1">{item.notes}</p>}
+                    {item.notes && (
+                      <p className="text-xs text-gray-400 mt-1">{item.notes}</p>
+                    )}
                   </button>
                 );
               })}

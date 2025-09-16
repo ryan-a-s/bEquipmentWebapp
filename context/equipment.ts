@@ -477,4 +477,28 @@ export const equipmentList: EquipmentItem[] = [
     location: [...sites.Wellington, ...sites.Hutt],
     procurement: { Wellington: 'Hire via Essential', Hutt: 'Hire via Essential' },
   },
+
+  {
+    category: 'Accessories',
+    name: 'Pump',
+    maxLoad: -1,
+    location: [...sites.Wellington, ...sites.Hutt],
+    procurement: { Wellington: 'On Ward', Hutt: 'On Ward' },
+  },
+  {
+    category: 'Accessories',
+    name: '2x Pumps',
+    maxLoad: -1,
+    location: [...sites.Wellington, ...sites.Hutt],
+    procurement: { Wellington: 'On Ward & CEP', Hutt: 'On Ward & CEP' },
+    notes: '1 Pump already On Ward, order additional pump for proper inflation.',
+  },
+  {
+    category: 'Accessories',
+    name: '2x Hovertech Pumps',
+    maxLoad: -1,
+    location: [...sites.Wellington, ...sites.Hutt],
+    procurement: { Wellington: 'CEP', Hutt: 'CEP' },
+    notes: 'Hovertech pumps required for Hoversling.',
+  },
 ];
