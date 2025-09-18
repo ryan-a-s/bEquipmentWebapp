@@ -72,16 +72,16 @@ export default function Main() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-4">
+    <div className="max-w-2xl mx-auto p-4 space-y-4">
       {steps.map((step) => (
         <div key={step.id} className="border rounded shadow-sm">
           <button
-            className="w-full p-3 text-left font-bold flex justify-between items-center bg-gray-100 hover:bg-gray-200"
+            className="w-full p-2 text-left font-bold flex justify-between items-center bg-gray-100 hover:bg-gray-200"
             onClick={() => setActiveStep(activeStep === step.id ? 0 : step.id)}
           >
             <span>
               {`Step ${step.id}: ${step.title}`}
-              {step.summary && <span className="text-gray-500 ml-2">({step.summary})</span>}
+              {step.summary && <span className="text-gray-500 ml-1">({step.summary})</span>}
             </span>
             {step.completed && <span className="text-green-600">✅</span>}
           </button>

@@ -103,7 +103,9 @@ export default function EquipmentStep({ onNext }: Props) {
       if (!location) return false;
       if (!item.location.includes(location)) return false;
 
-      if (item.maxLoad > 0 && exactWeight! > item.maxLoad) return false;
+      // Enforce min/max load only if defined
+      if (typeof item.minLoad === 'number' && exactWeight! < item.minLoad) return false;
+      if (typeof item.maxLoad === 'number' && item.maxLoad > 0 && exactWeight! > item.maxLoad) return false;
 
       if (category === 'Mattress' && equipment.Bed) {
         return item.compatibleBeds?.includes(equipment.Bed);
@@ -118,6 +120,7 @@ export default function EquipmentStep({ onNext }: Props) {
 
       return true;
     });
+
 
   const isEmptyCategory = (category: string) =>
     getItemsByCategory(category).length === 0;
@@ -141,9 +144,12 @@ export default function EquipmentStep({ onNext }: Props) {
 
   return (
     <div className="p-4 space-y-6">
-      <p className="p-2 bg-yellow-100 text-yellow-800 rounded">
-        If your patient is likely to be in ED for an extended period of time, contact M&H specialist for advice on other equipment requirements.
-      </p>
+      {isED && (
+        <p className="p-2 bg-yellow-100 text-yellow-800 rounded">
+          If your patient is likely to be in ED for an extended period of time, contact M&amp;H specialist for advice on other equipment requirements.
+        </p>
+      )}
+
 
       {allCategories.map((category) => {
         const items = getItemsByCategory(category);
@@ -152,6 +158,14 @@ export default function EquipmentStep({ onNext }: Props) {
         return (
           <div key={category} className="border rounded-lg p-4">
             <h2 className="text-xl font-bold mb-3">{category}</h2>
+            
+            {/* Extra info for Walking Aids + Independent */}
+            {category === 'Walking Aids' && dependencyStatus === 'independent' && (
+              <p className="p-2 bg-yellow-100 text-yellow-800 rounded">
+                Consider the patient&apos;s usual walking aid, refer to physio if mobility levels have changed.
+              </p>
+            )}
+
 
             {isEmptyCategory(category) && (
               <p className="text-gray-500 mb-2">

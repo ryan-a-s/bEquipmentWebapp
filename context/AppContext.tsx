@@ -25,6 +25,7 @@ type AppContextType = {
   setPatientWeight: (value: PatientWeight | null) => void;
   setDependencyStatus: (value: DependencyStatus) => void;
   setEquipment: (updates: EquipmentSelection) => void;
+  resetContext: () => void;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -39,6 +40,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setEquipment = (updates: EquipmentSelection) => {
     setEquipmentState((prev) => ({ ...prev, ...updates }));
+  };
+
+  const resetContext = () => { //reset context function
+    setLocationState(null);
+    setSecondaryLocation(null);
+    setPatientId(null);
+    setPatientWeight(null);
+    setDependencyStatus(null);
+    setEquipmentState({});
   };
 
   return (
@@ -56,6 +66,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setPatientWeight,
         setDependencyStatus,
         setEquipment,
+        resetContext,
       }}
     >
       {children}

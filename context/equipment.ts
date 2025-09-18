@@ -9,6 +9,7 @@ export type EquipmentItem = {
   category: string;            // e.g., "Bed", "Mattress"
   name: string;                // item name
   maxLoad: number;             // safe working load in kg
+  minLoad?: number;            // optional min load for equipment filtering
   location: LocationCode[];    // applicable location codes
   procurement: ProcurementBySite; // site-specific procurement
   compatibleBeds?: string[];   // for mattresses, which beds it's compatible with
@@ -165,7 +166,7 @@ export const equipmentList: EquipmentItem[] = [
   {
     category: 'Mat',
     name: 'Hovermat XL - Blue Handles (Arjo)',
-    maxLoad: 544,
+    maxLoad: 250,
     location: [...sites.Wellington, ...sites.Hutt],
     procurement: { Wellington: 'Department based supplies via imprest', Hutt: 'Department based supplies via imprest' },
     notes:'Requires pump from on ward supplies.',
@@ -232,6 +233,7 @@ export const equipmentList: EquipmentItem[] = [
     category: 'Commode',
     name: 'XL Shower Commode',
     maxLoad: 400,
+    minLoad: 200,
     location: [...sites.Wellington, ...sites.Hutt],
     procurement: { Wellington: 'Hire via Essential', Hutt: 'Hire via Essential' },
     notes: 'Patients have reported insufficient seat depth for correct use and comfort.',
@@ -240,6 +242,7 @@ export const equipmentList: EquipmentItem[] = [
     category: 'Commode',
     name: 'XL Bariatric Tilt & Recline Shower Commode',
     maxLoad: 500,
+    minLoad: 200,
     location: [...sites.Wellington, ...sites.Hutt],
     procurement: { Wellington: 'Hire via Essential', Hutt: 'Hire via Essential' },
   },
@@ -264,7 +267,7 @@ export const equipmentList: EquipmentItem[] = [
     maxLoad: 400,
     location: [...sites.Wellington],
     procurement: { Wellington: 'On Ward', Hutt: 'NA' },
-    notes: 'Check specific room for this hoist. Bed spaces with difficult access for bariatric beds on 6East and 6South',
+    notes: 'Check specific room for this hoist. Bed spaces with difficult access for bariatric beds on 6 East and 6 South',
   },
     {
     category: 'Hoist',
@@ -340,6 +343,7 @@ export const equipmentList: EquipmentItem[] = [
     category: 'Slings',
     name: 'Hoversling',
     maxLoad: 544,
+    minLoad: 200,
     location: [...sites.Wellington, ...sites.Hutt],
     procurement: { Wellington: 'Special order via imprest', Hutt: 'ICU Special order via imprest' },
     notes: 'Critically requires 2 Hovertech pumps for inflation. May be indicated for patients with uneven weight distribution. Refer to M&H specialist.',
@@ -398,6 +402,7 @@ export const equipmentList: EquipmentItem[] = [
     category: 'Walking Aids',
     name: 'Bariatric Rollator',
     maxLoad: 325,
+    minLoad: 200,
     location: [...sites.Wellington, ...sites.Hutt],
     procurement: { Wellington: 'Hire via Essential', Hutt: 'Hire via Essential' },
   },
@@ -421,6 +426,7 @@ export const equipmentList: EquipmentItem[] = [
     category: 'Wheelchairs',
     name: 'Be Cosy Plus Power Hi-low Care Chair',
     maxLoad: 350,
+    minLoad: 160,
     location: [...sites.Wellington, ...sites.Hutt],
     procurement: { Wellington: 'Hire via Essential', Hutt: 'Hire via Essential' },
   },
@@ -428,6 +434,7 @@ export const equipmentList: EquipmentItem[] = [
     category: 'Wheelchairs',
     name: 'Be Cosy Plus XL Power Hi-low Care Chair',
     maxLoad: 500,
+    minLoad: 200,
     location: [...sites.Wellington, ...sites.Hutt],
     procurement: { Wellington: 'Hire via Essential', Hutt: 'Hire via Essential' },
     notes: 'Increased risk of injury manually pushing this weight.',
@@ -436,6 +443,7 @@ export const equipmentList: EquipmentItem[] = [
     category: 'Wheelchairs',
     name: 'Eclipse self-propel wheelchair w/ suitable cushion',
     maxLoad: 454,
+    minLoad: 200,
     location: [...sites.Wellington, ...sites.Hutt],
     procurement: { Wellington: 'Hire via Permobile', Hutt: 'Hire via Permobile' },
     notes: 'Increased risk of injury manually pushing this weight.',
