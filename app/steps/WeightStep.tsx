@@ -15,6 +15,24 @@ const edWeightCategories: { label: string; min: number; max: number | null }[] =
   { label: "350+ kg", min: 350, max: null },
 ];
 
+// ED-specific alert rules (partial to avoid TS errors)
+const edAlerts: Partial<
+  Record<LocationCode, { threshold: number; message: string }>
+> = {
+  // Hutt ED
+  "F3S638-G": {
+    threshold: 200,
+    message:
+      "Any dependent patient over 200kg at Hutt Emergency will need ICU bedspace for hoisting - check availability. If not available, check availability of Wellington Wards (400kg), or ICU (500kg) bedspace with bariatric hoist.",
+  },
+  // Wellington ED
+  "F3M163-E": {
+    threshold: 400,
+    message:
+      "Any dependent patient over 400kg at Wellington Emergency will need ICU bedspace for hoisting - check availability. If not available, check availability of Hutt ICU (500kg) bedspace with bariatric hoist.",
+  },
+};
+
 export default function WeightStep({ onNext }: Props) {
   const {
     location,
@@ -28,7 +46,7 @@ export default function WeightStep({ onNext }: Props) {
     patientWeight?.min?.toString() ?? ""
   );
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [nextWeight, setNextWeight] = useState<PatientWeight | null>(null);
 
   if (!location) return <p className="p-4">No location selected.</p>;
@@ -41,7 +59,6 @@ export default function WeightStep({ onNext }: Props) {
       const weightNum = parseInt(inputWeight, 10);
       if (isNaN(weightNum) || weightNum <= 0) return;
 
-      // Store exact weight as min and max (for equipment filtering)
       setPatientWeight({ min: weightNum, max: weightNum });
       onNext();
     } else if (isED) {
@@ -49,14 +66,19 @@ export default function WeightStep({ onNext }: Props) {
 
       const category = edWeightCategories[selectedCategory];
 
-      // Alert condition: Hutt ED patients ≥ 250kg
-      if (location === "F3S638-G" && category.min >= 250) {
+      // Check if current ED has an alert rule
+      const alertRule = edAlerts[location];
+      if (
+        alertRule &&
+        (category.min >= alertRule.threshold || (category.max ?? Infinity) >= alertRule.threshold)
+      ) {
         setNextWeight({ min: category.min, max: category.max });
-        setShowAlert(true);
+        setAlertMessage(alertRule.message);
         return;
       }
 
-      // Store selected category for ED
+
+      // Otherwise just save weight + continue
       setPatientWeight({ min: category.min, max: category.max });
       onNext();
     }
@@ -65,7 +87,7 @@ export default function WeightStep({ onNext }: Props) {
   const handleAlertOk = () => {
     if (nextWeight) {
       setPatientWeight(nextWeight);
-      setShowAlert(false);
+      setAlertMessage(null);
       onNext();
     }
   };
@@ -139,16 +161,12 @@ export default function WeightStep({ onNext }: Props) {
         Continue
       </button>
 
-      {/* Alert modal for Hutt ED */}
-      {showAlert && (
+      {/* Alert modal */}
+      {alertMessage && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-sm text-center shadow-lg">
             <h2 className="text-lg font-bold mb-4">Alert</h2>
-            <p className="mb-6">
-              Any patient over 250kg at Hutt Emergency will need ICU bedspace – check
-              availability. If not available, consider diverting patient / ambulance to
-              Wellington.
-            </p>
+            <p className="mb-6">{alertMessage}</p>
             <button
               onClick={handleAlertOk}
               className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"

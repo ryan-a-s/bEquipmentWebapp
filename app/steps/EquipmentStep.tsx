@@ -19,59 +19,10 @@ export default function EquipmentStep({ onNext }: Props) {
   const isWard = location ? isWardLocation(location) : false;
   const isED = !isWard;
 
-  // ----------------
-  // Auto-select default mattress if bed chosen
-  // ----------------
-  useEffect(() => {
-    if (!equipment.Bed) return;
-
-    const defaultMattress = equipmentList.find(
-      (item) =>
-        item.category === 'Mattress' &&
-        item.defaultForBeds?.includes(equipment.Bed as string)
-    );
-
-    if (
-      defaultMattress &&
-      (!equipment.Mattress ||
-        !equipmentList.find((m) => m.name === equipment.Mattress)
-          ?.compatibleBeds?.includes(equipment.Bed as string))
-    ) {
-      setEquipment({
-        ...equipment,
-        Mattress: defaultMattress.name,
-      });
-    }
-  }, [equipment.Bed, equipment.Mattress, setEquipment]);
-
-  // ----------------
-  // Auto-select pumps based on mat / hoversling logic
-  // ----------------
-  useEffect(() => {
-    if (!exactWeight) return;
-
-    let selectedPump: string | undefined;
-
-    if (equipment.Slings === 'Hoversling') {
-      selectedPump = '2x Hovertech Pumps';
-    } else if (equipment.Mat) {
-      selectedPump = exactWeight >= 300 ? '2x Pumps' : 'Pump';
-    }
-
-    if (selectedPump && equipment.Accessories !== selectedPump) {
-      setEquipment({
-        ...equipment,
-        Accessories: selectedPump,
-      });
-    }
-  }, [equipment.Mat, equipment.Slings, exactWeight, equipment.Accessories, setEquipment]);
-
   // Bail out after hooks
   if (!location || !patientWeight) {
     return <p className="p-4">Missing patient info, location, or weight.</p>;
   }
-
-  const showAccessories = !!equipment.Mat || equipment.Slings === 'Hoversling';
 
   // ----------------
   // Category setup
@@ -79,20 +30,73 @@ export default function EquipmentStep({ onNext }: Props) {
   let requiredCategories: string[] = [];
   let optionalCategories: string[] = [];
 
+  const showAccessories =
+    !!equipment.Hovermat || equipment.Slings === 'Hoversling';
+
   if (isED) {
-    requiredCategories = ['Bed', 'Mattress', 'Mat'];
-    optionalCategories = ['Commode'];
+    requiredCategories = ['Bed + Mattress', 'Hovermat'];
+    optionalCategories = ['Commode Options'];
   } else if (isWard && dependencyStatus === 'independent') {
-    requiredCategories = ['Bed', 'Mattress', 'Commode'];
+    requiredCategories = ['Bed + Mattress', 'Commode Options'];
     optionalCategories = ['Walking Aids', 'Wheelchairs', 'Bedside Chairs'];
   } else if (isWard && dependencyStatus === 'dependent') {
-    requiredCategories = ['Bed', 'Mattress', 'Commode', 'Hoist', 'Slings', 'Mat'];
+    requiredCategories = [
+      'Bed + Mattress',
+      'Commode Options',
+      'Hoist',
+      'Slings',
+      'Hovermat',
+    ];
     optionalCategories = ['Wheelchairs', 'Bedside Chairs'];
   }
 
-  if (showAccessories) requiredCategories.push('Accessories');
+  // Remove Hovermat if Hoversling is selected
+  if (equipment.Slings === 'Hoversling') {
+    requiredCategories = requiredCategories.filter(
+      (c) => c !== 'Hovermat'
+    );
+  }
 
-  const allCategories = [...requiredCategories, ...optionalCategories];
+  if (showAccessories) {
+    requiredCategories.push('Accessories');
+  }
+
+const allCategories = [...requiredCategories, ...optionalCategories];
+
+
+  // ----------------
+  // Auto-select pumps based on Hovermat / Hoversling logic
+  // ----------------
+  useEffect(() => {
+    if (!exactWeight) return;
+
+    let selectedPump: string | undefined;
+    const updates = { ...equipment };
+
+    if (equipment.Slings === 'Hoversling') {
+      selectedPump = '2x Hovertech Pumps';
+
+      // Clear Hovermat if previously selected
+      if (updates.Hovermat) {
+        updates.Hovermat = undefined;
+      }
+    } else if (equipment.Hovermat) {
+      selectedPump =
+        exactWeight >= 380
+          ? '2x Air Supply for Hovermat'
+          : 'Air Supply for Hovermat';
+    }
+
+    if (selectedPump && updates.Accessories !== selectedPump) {
+      updates.Accessories = selectedPump;
+    }
+
+    // Only call setEquipment if something actually changed
+    if (JSON.stringify(updates) !== JSON.stringify(equipment)) {
+      setEquipment(updates);
+    }
+  }, [equipment.Slings, equipment.Hovermat, exactWeight, equipment, setEquipment]);
+
 
   // ----------------
   // Filter equipment
@@ -105,15 +109,18 @@ export default function EquipmentStep({ onNext }: Props) {
 
       // Enforce min/max load only if defined
       if (typeof item.minLoad === 'number' && exactWeight! < item.minLoad) return false;
-      if (typeof item.maxLoad === 'number' && item.maxLoad > 0 && exactWeight! > item.maxLoad) return false;
-
-      if (category === 'Mattress' && equipment.Bed) {
-        return item.compatibleBeds?.includes(equipment.Bed);
-      }
+      if (typeof item.maxLoad === 'number' && item.maxLoad > 0 && exactWeight! > item.maxLoad)
+        return false;
 
       if (category === 'Accessories') {
         // Only show the auto-selected pump
-        if (['Pump', '2x Pumps', '2x Hovertech Pumps'].includes(item.name)) {
+        if (
+          [
+            'Air Supply for Hovermat',
+            '2x Air Supply for Hovermat',
+            '2x Hovertech Pumps',
+          ].includes(item.name)
+        ) {
           return item.name === equipment.Accessories;
         }
       }
@@ -146,10 +153,10 @@ export default function EquipmentStep({ onNext }: Props) {
     <div className="p-4 space-y-6">
       {isED && (
         <p className="p-2 bg-yellow-100 text-yellow-800 rounded">
-          If your patient is likely to be in ED for an extended period of time, contact M&amp;H specialist for advice on other equipment requirements.
+          If your patient is likely to be in ED for an extended period of time, contact
+          M&amp;H specialist for advice on other equipment requirements.
         </p>
       )}
-
 
       {allCategories.map((category) => {
         const items = getItemsByCategory(category);
@@ -158,15 +165,30 @@ export default function EquipmentStep({ onNext }: Props) {
         return (
           <div key={category} className="border rounded-lg p-4">
             <h2 className="text-xl font-bold mb-3">{category}</h2>
-            
-            {/* Extra info for Walking Aids + Independent */}
-            {category === 'Walking Aids' && dependencyStatus === 'independent' && (
+
+            {/* Extra info for Bed + Mattress */}
+            {category === 'Bed + Mattress' && (
               <p className="p-2 bg-yellow-100 text-yellow-800 rounded">
-                Consider the patient&apos;s usual walking aid, refer to physio if mobility levels have changed.
+                May need to consider alternative mattresses for pressure care or turning assist. Follow usual ordering processes for these alternative mattresses.
               </p>
             )}
 
+            {/* Extra info for Walking Aids + Independent */}
+            {category === 'Walking Aids' && dependencyStatus === 'independent' && (
+              <p className="p-2 bg-yellow-100 text-yellow-800 rounded">
+                Consider the patient&apos;s usual walking aid, refer to physio if mobility
+                levels have changed.
+              </p>
+            )}
 
+            {/* Extra info for Slings */}
+            {category === 'Slings' && (
+              <p className="p-2 bg-yellow-100 text-yellow-800 rounded">
+                Other slings may be available with various SWL and width, check with CEP and refer to OT.
+              </p>
+            )}
+
+            {/* If category is empty (no equipment in SWL) */}
             {isEmptyCategory(category) && (
               <p className="text-gray-500 mb-2">
                 No available {category.toLowerCase()} under the patient’s weight limit.
@@ -177,10 +199,6 @@ export default function EquipmentStep({ onNext }: Props) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {items.map((item) => {
                 const isSelected = equipment[category] === item.name;
-                const isDefaultForBed =
-                  category === 'Mattress' &&
-                  equipment.Bed &&
-                  item.defaultForBeds?.includes(equipment.Bed as string);
 
                 return (
                   <button
@@ -195,13 +213,25 @@ export default function EquipmentStep({ onNext }: Props) {
                     <p className="font-medium">{item.name}</p>
 
                     {item.category !== 'Accessories' && (
-                      <p className="text-sm text-gray-500">
-                        Max load: {item.maxLoad > 0 ? `${item.maxLoad}kg` : 'N/A'}
-                      </p>
+                      <>
+                        {typeof item.maxLoad === 'number' && item.maxLoad > 0 && (
+                          <p className="text-sm text-gray-500">
+                            Max load: {item.maxLoad}kg
+                          </p>
+                        )}
+
+                      </>
+                    )}
+
+                    {typeof item.width === 'number' && (
+                      <p className="text-sm text-gray-500">Width: {item.width} cm</p>
+                    )}
+                    {typeof item.seatWidth === 'number' && (
+                      <p className="text-sm text-gray-500">Seat width: {item.seatWidth} cm</p>
                     )}
 
                     <p className="text-sm text-gray-500">
-                      Procurement: {isDefaultForBed ? 'Included with bed' : getProcurement(item)}
+                      Procurement: {getProcurement(item)}
                     </p>
 
                     {item.notes && (

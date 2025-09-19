@@ -23,6 +23,8 @@ export const getLocationLabel = (code: LocationCode | null): string => {
 export const sites = {
   Wellington: ["F3M163-E", "F06033-K"] as LocationCode[],
   Hutt: ["F3S638-G", "F06034-A"] as LocationCode[],
+  Wards: ["F06033-K","F06034-A"] as LocationCode[],
+  HuttED: ["F3S638-G"] as LocationCode[],
 };
 
 // check if location is a ward
