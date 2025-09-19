@@ -19,10 +19,7 @@ export default function EquipmentStep({ onNext }: Props) {
   const isWard = location ? isWardLocation(location) : false;
   const isED = !isWard;
 
-  // Bail out after hooks
-  if (!location || !patientWeight) {
-    return <p className="p-4">Missing patient info, location, or weight.</p>;
-  }
+
 
   // ----------------
   // Category setup
@@ -97,6 +94,10 @@ const allCategories = [...requiredCategories, ...optionalCategories];
     }
   }, [equipment.Slings, equipment.Hovermat, exactWeight, equipment, setEquipment]);
 
+  // Bail out after hooks
+  if (!location || !patientWeight) {
+    return <p className="p-4">Missing patient info, location, or weight.</p>;
+  }
 
   // ----------------
   // Filter equipment

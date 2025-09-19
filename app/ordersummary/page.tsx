@@ -2,7 +2,7 @@
 
 import { useAppContext } from '../../context/AppContext';
 import { getLocationLabel, isWardLocation, sites } from '../../context/locations';
-import { equipmentList } from '../../context/equipment';
+import { equipmentList, EquipmentItem } from '../../context/equipment';
 
 export default function ReviewPage() {
   const { location, secondaryLocation, dependencyStatus, patientWeight, patientId, equipment } =
@@ -19,28 +19,38 @@ export default function ReviewPage() {
     ? `${patientWeight.min} – ${patientWeight.max} kg`
     : `${patientWeight.min}+ kg`;
 
-  const selectedEquipmentDetails = Object.entries(equipment)
-    .filter(([_, name]) => name) // only include selected
-    .map(([category, name]) => {
-      const item = equipmentList.find((e) => e.name === name);
-      return { category, ...item };
-    });
+  // Filter selected equipment and get details
+  const selectedEquipmentDetails: EquipmentItem[] = Object.entries(equipment)
+    .filter(([_, name]) => !!name)
+    .map(([_, name]) => equipmentList.find((e) => e.name === name))
+    .filter((item): item is EquipmentItem => !!item);
+
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Review Order</h1>
 
+      {/* Order info */}
       <section className="mb-6">
         <h2 className="text-xl font-semibold mb-3">Order Info</h2>
         <p>
           <strong>Primary Location:</strong> {location} — {getLocationLabel(location)}
         </p>
-        <p><strong>Secondary Location:</strong> {secondaryLocation ?? 'N/A'}</p>
-        <p><strong>Patient NHI:</strong> {patientId}</p>
-        <p><strong>Dependency Status:</strong> {dependencyStatus ?? 'N/A'}</p>
-        <p><strong>Weight:</strong> {weightDisplay}</p>
+        <p>
+          <strong>Secondary Location:</strong> {secondaryLocation ?? 'N/A'}
+        </p>
+        <p>
+          <strong>Patient NHI:</strong> {patientId}
+        </p>
+        <p>
+          <strong>Dependency Status:</strong> {dependencyStatus ?? 'N/A'}
+        </p>
+        <p>
+          <strong>Weight:</strong> {weightDisplay}
+        </p>
       </section>
 
+      {/* Selected Equipment */}
       <section className="mb-6">
         <h2 className="text-xl font-semibold mb-3">Selected Equipment</h2>
         {selectedEquipmentDetails.length === 0 ? (
@@ -48,10 +58,8 @@ export default function ReviewPage() {
         ) : (
           <div className="space-y-3">
             {selectedEquipmentDetails.map((item) => {
-              if (!item) return null;
-
-              const site = selectedLocationIsWellington(location) ? 'Wellington' : 'Hutt';
-              const procurement = item?.procurement ? item.procurement[site] : 'N/A';
+              const site = sites.Wellington.includes(location) ? 'Wellington' : 'Hutt';
+              const procurement = item.procurement?.[site] ?? 'N/A';
 
               return (
                 <div key={item.name} className="p-3 border rounded-lg shadow-sm">
@@ -59,9 +67,17 @@ export default function ReviewPage() {
                     {item.category}: {item.name}
                   </p>
 
-                  {/* Show Max Load unless it's Accessories */}
+                  {/* Show Max Load if not Accessories */}
                   {item.category !== 'Accessories' && (
-                    <p className="text-sm text-gray-500">Max Load: {item.maxLoad ?? '-' } kg</p>
+                    <p className="text-sm text-gray-500">Max Load: {item.maxLoad} kg</p>
+                  )}
+
+                  {/* Show width and seatWidth if present */}
+                  {typeof item.width === 'number' && (
+                    <p className="text-sm text-gray-500">Width: {item.width} cm</p>
+                  )}
+                  {typeof item.seatWidth === 'number' && (
+                    <p className="text-sm text-gray-500">Seat Width: {item.seatWidth} cm</p>
                   )}
 
                   <p className="text-sm text-gray-500">Procurement: {procurement}</p>
@@ -81,8 +97,4 @@ export default function ReviewPage() {
       </button>
     </div>
   );
-
-  function selectedLocationIsWellington(location: string) {
-    return sites.Wellington.includes(location as any);
-  }
 }
