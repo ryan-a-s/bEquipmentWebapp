@@ -50,13 +50,8 @@ export default function ReviewPage() {
             {selectedEquipmentDetails.map((item) => {
               if (!item) return null;
 
-              const site = sites.Wellington.includes(location) ? 'Wellington' : 'Hutt';
-              const procurement =
-                item.defaultForBeds?.includes(equipment.Bed || '')
-                  ? 'Included with bed'
-                  : item.procurement
-                  ? item.procurement[site]
-                  : 'N/A';
+              const site = selectedLocationIsWellington(location) ? 'Wellington' : 'Hutt';
+              const procurement = item?.procurement ? item.procurement[site] : 'N/A';
 
               return (
                 <div key={item.name} className="p-3 border rounded-lg shadow-sm">
@@ -66,7 +61,7 @@ export default function ReviewPage() {
 
                   {/* Show Max Load unless it's Accessories */}
                   {item.category !== 'Accessories' && (
-                    <p className="text-sm text-gray-500">Max Load: {item.maxLoad} kg</p>
+                    <p className="text-sm text-gray-500">Max Load: {item.maxLoad ?? '-' } kg</p>
                   )}
 
                   <p className="text-sm text-gray-500">Procurement: {procurement}</p>
@@ -86,4 +81,8 @@ export default function ReviewPage() {
       </button>
     </div>
   );
+
+  function selectedLocationIsWellington(location: string) {
+    return sites.Wellington.includes(location as any);
+  }
 }
