@@ -161,7 +161,7 @@ const allCategories = [...requiredCategories, ...optionalCategories];
 
       {allCategories.map((category) => {
         const items = getItemsByCategory(category);
-        if (!items.length) return null; // hide empty categories
+       
 
         return (
           <div key={category} className="border rounded-lg p-4">
@@ -191,7 +191,7 @@ const allCategories = [...requiredCategories, ...optionalCategories];
 
             {/* If category is empty (no equipment in SWL) */}
             {isEmptyCategory(category) && (
-              <p className="text-gray-500 mb-2">
+              <p className="p-2 bg-red-100 text-red-800 rounded">
                 No available {category.toLowerCase()} under the patient’s weight limit.
                 Please get in contact with moving and handling specialist.
               </p>

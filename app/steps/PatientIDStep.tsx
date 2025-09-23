@@ -15,22 +15,36 @@ export default function PatientIDStep({ onNext }: PatientIDStepProps) {
     onNext();
   };
 
-  return (
-    <div className="space-y-4">
-      <label>Enter Patient NHI:</label>
-      <input
-        type="text"
-        value={localPatientId}
-        onChange={(e) => setLocalPatientId(e.target.value)}
-        className="border p-2 w-full"
-      />
+  // Continue button enabled logic
+  const canContinue = localPatientId;
 
+  return (
+    <div className="flex flex-col">
+      <div className="pb-8">
+        <h2 className="pb-2 text-lg">Enter Patient NHI:</h2>
+        <input
+          type="text"
+          value={localPatientId}
+          onChange={(e) => setLocalPatientId(e.target.value)}
+          className={`
+                border-2 border-outline px-2 py-4 w-full rounded-lg 
+                focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary
+                ${localPatientId ? "bg-primaryC border-primaryC text-on-primary font-bold" : "text-on-surfaceV bg-surfaceHigh"}
+              `}
+              placeholder= "XXX1234"
+        />
+      </div>
+      
       <button
+        disabled={!canContinue}
         onClick={handleNext}
-        className="mt-4 bg-green-600 text-white px-4 py-2 rounded"
-        disabled={!localPatientId}
+        className={`self-center w-1/2 sm:w-1/3  p-4 rounded-lg transition ${
+          canContinue
+            ? "bg-accept-green text-on-primary font-bold hover:bg-accept-greenH shadow-sm"
+            : "bg-surfaceV text-on-surfaceV cursor-not-allowed"
+        }`}
       >
-        Next
+        Continue
       </button>
     </div>
   );
