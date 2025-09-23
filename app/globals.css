@@ -1,15 +1,44 @@
+
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #F8F9FF;
   --foreground: #171717;
+  --primary: rgb(0 93 167);
+  --on-primary: rgb(255 255 255);
+  --inverse-primary: rgb(164 201 255);
+  --primary-container: rgb(41 118 199);
+  --on-surface: rgb(28 27 27);
+  --on-surface-variant: rgb(67 71 73);
+  --surface-container-high: rgb(235 231 231);
+  --surface-container-highest: rgb(229 226 225);
+  --surface-container-lowest: rgb(255 255 255);
+  --surface-variant: rgb(224 227 229);
+  --outline: rgb(116 120 122);
+  --outline-variant: rgb(196 199 201);
+  --accept-green: #73C322;
+  --accept-greenH: #6EBC20;
+
 }
+
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primaryI: var(--inverse-primary);
+  --color-primaryC: var(--primary-container);
+  --color-on-surface: var(--on-surface);
+  --color-on-surfaceV: var(--on-surface-variant);
+  --color-surfaceHigh: var(--surface-container-high);
+  --color-surfaceHighest: var(--surface-container-highest);
+  --color-surfaceLowest: var(--surface-container-lowest);
+  --color-surfaceV: var(--surface-variant);
+  --color-outline: var(--outline);
+  --color-outlineV: var(--outline-variant);
+  --color-accept-green: var(--accept-green);
+  --color-accept-greenH: var(--accept-greenH);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,6 +50,6 @@
 
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--on-surface);
+  font-family: "Roboto", sans-serif;
 }

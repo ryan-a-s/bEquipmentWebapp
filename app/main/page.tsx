@@ -21,7 +21,7 @@ export default function Main() {
       return `${patientWeight.min}+ kg`;
     }
     // Ward: show exact weight and dependency if set
-    return `${patientWeight.min}kg${dependencyStatus ? ' - ' + dependencyStatus : ''}`;
+    return `${patientWeight.min}kg${dependencyStatus ? ' – ' + dependencyStatus : ''}`;
   };
 
   const getEquipmentSummary = () => {
@@ -38,7 +38,7 @@ export default function Main() {
         title: 'Location',
         completed: !!location,
         summary: location
-          ? `${getLocationLabel(location)}${secondaryLocation ? ' - ' + secondaryLocation : ''}`
+          ? `${getLocationLabel(location)}${secondaryLocation ? ' – ' + secondaryLocation : ''}`
           : '',
       },
       {
@@ -72,22 +72,31 @@ export default function Main() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4 space-y-4">
+    <div className="flex-col items-center max-w-2xl mx-auto px-8 py-8 space-y-4">
       {steps.map((step) => (
-        <div key={step.id} className="border rounded shadow-sm">
+        <div key={step.id} className="rounded-2xl shadow-sm overflow-hidden">
           <button
-            className="w-full p-2 text-left font-bold flex justify-between items-center bg-gray-100 hover:bg-gray-200"
+            className={`
+              w-full px-4 py-2 flex justify-between items-center text-xl font-bold
+              ${activeStep === step.id || step.completed
+                ? "text-on-primary bg-primary hover:bg-primaryC"
+                : "text-on-primary bg-primaryI text-gray-500"}
+            `}
             onClick={() => setActiveStep(activeStep === step.id ? 0 : step.id)}
           >
-            <span>
-              {`Step ${step.id}: ${step.title}`}
-              {step.summary && <span className="text-gray-500 ml-1">({step.summary})</span>}
-            </span>
-            {step.completed && <span className="text-green-600">✅</span>}
+            {/* Left side */}
+            <span className="text-left">{step.title}</span>
+
+            {/* Right side */}
+            {step.summary && (
+              <span className="text-base font-medium text-on-primary text-right">
+                {step.summary}
+              </span>
+            )}
           </button>
 
           {activeStep === step.id && (
-            <div className="p-4 bg-white">
+            <div className="p-4 bg-surfaceLowest border-x-2 border-b-2 rounded-b-2xl border-outlineV">
               {step.id === 1 && <LocationStep onNext={() => handleNextStep(1)} />}
               {step.id === 2 && <PatientIDStep onNext={() => handleNextStep(2)} />}
               {step.id === 3 && <WeightStep onNext={() => handleNextStep(3)} />}
@@ -98,4 +107,5 @@ export default function Main() {
       ))}
     </div>
   );
+
 }

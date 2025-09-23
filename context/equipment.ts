@@ -37,7 +37,7 @@ export const equipmentList: EquipmentItem[] = [
     category: 'Bed + Mattress',
     name: 'Arjo Citadel w/ Atmosair Mattress',
     maxLoad: 454,
-    minLoad: 251,
+    minLoad: 230,
     location: [...sites.Wellington, ...sites.Hutt],
     procurement: { Wellington: 'ICU / Bed store / Hire via Arjo', Hutt: 'CEP' },
     notes: 'Wide lying surface & power drive. Patients report uncomfortable to sit on the edge due to bed rails.',
@@ -53,7 +53,7 @@ export const equipmentList: EquipmentItem[] = [
     category: 'Bed + Mattress',
     name: 'Essential Barry Bed w/ Q5 ProCare Bariatric Air Mattress',
     maxLoad: 450,
-    minLoad: 381,
+    minLoad: 360,
     location: [...sites.Wellington, ...sites.Hutt],
     procurement: { Wellington: 'Hire via Essential', Hutt: 'Hire via Essential' },
     notes: 'Alternating air mattress for pressure care.'
