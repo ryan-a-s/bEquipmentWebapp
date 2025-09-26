@@ -7,7 +7,7 @@ import { LocationCode } from "./locations";
 export type PatientWeight = { min: number; max: number | null };
 
 // Dependency status type
-export type DependencyStatus = "dependent" | "independent" | null;
+export type DependencyStatus = "Dependent" | "Independent" | null;
 
 // Equipment selection
 export type EquipmentSelection = Record<string, string | undefined>;

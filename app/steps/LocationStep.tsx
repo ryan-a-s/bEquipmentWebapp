@@ -33,15 +33,16 @@ export default function LocationStep({ onNext }: Props) {
 
   return (
     <div className="flex flex-col">
-      <h2 className="pb-2 text-lg">Select Primary Location</h2>
+      <h2 className="pb-2 text-lg font-medium">Select Primary Location</h2>
 
-      <div className=" pb-8 grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div className=" pb-8 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-2">
         {locations.map((loc) => (
           <button
             key={loc.value}
             onClick={() => handleSelectLocation(loc.value)}
             className={`p-4 rounded-lg shadow-sm transition ${
-              location === loc.value ? "bg-primaryC text-on-primary font-bold" : "bg-surfaceHigh hover:bg-surfaceHighest"
+              location === loc.value ? "bg-primaryC text-on-primary font-bold" 
+              : "bg-surfaceHigh hover:bg-surfaceHighest"
             }`}
           >
             {loc.label}
@@ -52,7 +53,7 @@ export default function LocationStep({ onNext }: Props) {
       {/* Only show ward text input for ward locations */}
       {isWard && (
         <div className="pb-8">
-          <h2 className="pb-2 text-lg">Enter Ward Name:</h2>
+          <h2 className="pb-2 text-lg font-medium">Enter Ward Name:</h2>
           <input
             type="text"
             value={secondaryLocation ?? ""}
@@ -60,7 +61,7 @@ export default function LocationStep({ onNext }: Props) {
             className={`
               border-2 border-outline px-2 py-4 w-full rounded-lg 
               focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary
-              ${secondaryLocation ? "bg-primaryC border-primaryC text-on-primary font-bold" : "text-on-surfaceV bg-surfaceHigh"}
+              ${secondaryLocation ? "bg-primaryC hover:bg-primary border-primaryC text-on-primary font-bold" : "text-on-surfaceV bg-surfaceHigh hover:bg-surfaceHighest"}
             `}
             placeholder="Ward Name"
           />
@@ -76,7 +77,7 @@ export default function LocationStep({ onNext }: Props) {
         className={`self-center w-1/2 sm:w-1/3  p-4 rounded-lg transition ${
           canContinue
             ? "bg-accept-green text-on-primary font-bold hover:bg-accept-greenH shadow-sm"
-            : "bg-surfaceV text-on-surfaceV cursor-not-allowed"
+            : "bg-surfaceV text-outline cursor-not-allowed"
         }`}
       >
         Continue

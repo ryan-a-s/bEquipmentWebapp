@@ -1,10 +1,13 @@
 'use client';
 
+import Image from "next/image";
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppContext } from '../../context/AppContext';
 import { equipmentList, EquipmentItem } from '../../context/equipment';
 import { isWardLocation, sites } from '../../context/locations';
+
+const BASE_PATH = '/bEquipmentWebapp'; // Only used for images, for github pages
 
 type Props = {
   onNext?: () => void;
@@ -33,10 +36,10 @@ export default function EquipmentStep({ onNext }: Props) {
   if (isED) {
     requiredCategories = ['Bed + Mattress', 'Hovermat'];
     optionalCategories = ['Commode Options'];
-  } else if (isWard && dependencyStatus === 'independent') {
+  } else if (isWard && dependencyStatus === 'Independent') {
     requiredCategories = ['Bed + Mattress', 'Commode Options'];
     optionalCategories = ['Walking Aids', 'Wheelchairs', 'Bedside Chairs'];
-  } else if (isWard && dependencyStatus === 'dependent') {
+  } else if (isWard && dependencyStatus === 'Dependent') {
     requiredCategories = [
       'Bed + Mattress',
       'Commode Options',
@@ -145,18 +148,28 @@ const allCategories = [...requiredCategories, ...optionalCategories];
     return item.procurement?.[site] ?? 'N/A';
   };
 
+  
+  // Continue button enabled logic
+  const canContinue = requiredCategories.every(
+    (cat) => equipment[cat] !== undefined
+  );
+
   const handleContinue = () => {
     onNext?.();
     router.push('/ordersummary');
   };
 
+
   return (
-    <div className="p-4 space-y-6">
+    <div className="flex flex-col space-y-4">
       {isED && (
-        <p className="p-2 bg-yellow-100 text-yellow-800 rounded">
-          If your patient is likely to be in ED for an extended period of time, contact
-          M&amp;H specialist for advice on other equipment requirements.
-        </p>
+        <div className='p-2 flex justify-content-center gap-2 bg-alert-yellow rounded-lg'>
+          <Image className="dark:invert" src={`${BASE_PATH}/warning.svg`} alt="Warning Icon" width={24} height={24}/>
+          <p className="text-on-alert tracking-tight">
+            If your patient is likely to be in ED for an extended period of time, contact
+            M&amp;H specialist for advice on other equipment requirements.
+          </p>
+        </div>
       )}
 
       {allCategories.map((category) => {
@@ -164,40 +177,58 @@ const allCategories = [...requiredCategories, ...optionalCategories];
        
 
         return (
-          <div key={category} className="border rounded-lg p-4">
-            <h2 className="text-xl font-bold mb-3">{category}</h2>
+          <div key={category} className="bg-surface rounded-lg p-2 space-y-2">
+            <h2 className="flex items-center gap-1 text-lg font-medium">
+              {category}
+              {optionalCategories.includes(category) && (
+                <span className="text-sm font-normal text-on-surfaceV"> (Optional)</span>
+              )}
+            </h2>
 
             {/* Extra info for Bed + Mattress */}
             {category === 'Bed + Mattress' && (
-              <p className="p-2 bg-yellow-100 text-yellow-800 rounded">
-                May need to consider alternative mattresses for pressure care or turning assist. Follow usual ordering processes for these alternative mattresses.
-              </p>
+              <div className='p-2 flex justify-content-center gap-2 bg-alert-yellow rounded-lg'>
+                <Image className="dark:invert" src={`${BASE_PATH}/warning.svg`} alt="Warning Icon" width={24} height={24}/>
+                <p className="text-on-alert tracking-tight">
+                  May need to consider alternative mattresses for pressure care or turning assist. 
+                  Follow usual ordering processes for these alternative mattresses.
+                </p>
+              </div>
             )}
 
             {/* Extra info for Walking Aids + Independent */}
-            {category === 'Walking Aids' && dependencyStatus === 'independent' && (
-              <p className="p-2 bg-yellow-100 text-yellow-800 rounded">
-                Consider the patient&apos;s usual walking aid, refer to physio if mobility
-                levels have changed.
-              </p>
+            {category === 'Walking Aids' && dependencyStatus === 'Independent' && (
+              <div className='p-2 flex justify-content-center gap-2 bg-alert-yellow rounded-lg'>
+                <Image className="dark:invert" src={`${BASE_PATH}/warning.svg`} alt="Warning Icon" width={24} height={24}/>
+                <p className="text-on-alert tracking-tight">
+                  Consider the patient&apos;s usual walking aid, refer to physio if mobility
+                  levels have changed.
+                </p>
+              </div>
             )}
 
             {/* Extra info for Slings */}
             {category === 'Slings' && (
-              <p className="p-2 bg-yellow-100 text-yellow-800 rounded">
-                Other slings may be available with various SWL and width, check with CEP and refer to OT.
-              </p>
+              <div className='p-2 flex justify-content-center gap-2 bg-alert-yellow rounded-lg'>
+                <Image className="dark:invert" src={`${BASE_PATH}/warning.svg`} alt="Warning Icon" width={24} height={24}/>
+                <p className="text-on-alert tracking-tight">
+                  Other slings may be available with various SWL and width, check with CEP and refer to OT.
+                </p>
+              </div>
             )}
 
             {/* If category is empty (no equipment in SWL) */}
             {isEmptyCategory(category) && (
-              <p className="p-2 bg-red-100 text-red-800 rounded">
-                No available {category.toLowerCase()} under the patient’s weight limit.
-                Please get in contact with moving and handling specialist.
-              </p>
+              <div className='p-2 flex justify-content-center gap-2 bg-error rounded-lg'>
+                <Image className="dark:invert" src={`${BASE_PATH}/error.svg`} alt="Error Icon" width={24} height={24}/>
+                <p className="text-on-primary tracking-tight">
+                  No available {category.toLowerCase()} under the patient’s weight limit.
+                  Please get in contact with moving and handling specialist.
+                </p>
+              </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 md:items-stretch gap-y-4 gap-x-2">
               {items.map((item) => {
                 const isSelected = equipment[category] === item.name;
 
@@ -205,40 +236,69 @@ const allCategories = [...requiredCategories, ...optionalCategories];
                   <button
                     key={item.name}
                     onClick={() => handleSelect(category, item.name)}
-                    className={`p-4 border rounded-lg text-left shadow-sm transition ${
+                    className={`p-2 flex flex-col items-start rounded-lg text-left shadow-sm transition ${
                       isSelected
-                        ? 'bg-blue-200 text-black border-blue-600'
-                        : 'bg-white hover:bg-gray-50'
+                        ? "bg-primaryC text-on-primary font-bold"
+                        : "bg-surfaceHigh hover:bg-surfaceHighest"
                     }`}
                   >
-                    <p className="font-medium">{item.name}</p>
+                    <p
+                      className={`text-base ${
+                        isSelected ? "text-on-primary" : "font-medium text-on-surface"
+                      }`}
+                    >
+                      {item.name}
+                    </p>
 
-                    {item.category !== 'Accessories' && (
-                      <>
-                        {typeof item.maxLoad === 'number' && item.maxLoad > 0 && (
-                          <p className="text-sm text-gray-500">
-                            Max load: {item.maxLoad}kg
-                          </p>
-                        )}
-
-                      </>
+                    {item.category !== "Accessories" && typeof item.maxLoad === "number" && item.maxLoad > 0 && (
+                      <p
+                        className={`text-sm ${
+                          isSelected ? "text-on-primary font-medium" : "text-on-surface"
+                        }`}
+                      >
+                        Max load: {item.maxLoad}kg
+                      </p>
                     )}
 
-                    {typeof item.width === 'number' && (
-                      <p className="text-sm text-gray-500">Width: {item.width} cm</p>
-                    )}
-                    {typeof item.seatWidth === 'number' && (
-                      <p className="text-sm text-gray-500">Seat width: {item.seatWidth} cm</p>
+                    {typeof item.width === "number" && (
+                      <p
+                        className={`text-sm ${
+                          isSelected ? "text-on-primary font-medium" : "text-on-surface"
+                        }`}
+                      >
+                        Width: {item.width} cm
+                      </p>
                     )}
 
-                    <p className="text-sm text-gray-500">
+                    {typeof item.seatWidth === "number" && (
+                      <p
+                        className={`text-sm ${
+                          isSelected ? "text-on-primary font-medium" : "text-on-surface"
+                        }`}
+                      >
+                        Seat width: {item.seatWidth} cm
+                      </p>
+                    )}
+
+                    <p
+                      className={`text-sm ${
+                        isSelected ? "text-on-primary font-medium" : "text-on-surface"
+                      }`}
+                    >
                       Procurement: {getProcurement(item)}
                     </p>
 
                     {item.notes && (
-                      <p className="text-xs text-gray-400 mt-1">{item.notes}</p>
+                      <p
+                        className={`text-xs mt-1 ${
+                          isSelected ? "text-on-primary/90 font-medium" : "text-on-surfaceV"
+                        }`}
+                      >
+                        {item.notes}
+                      </p>
                     )}
                   </button>
+
                 );
               })}
             </div>
@@ -247,8 +307,13 @@ const allCategories = [...requiredCategories, ...optionalCategories];
       })}
 
       <button
+        disabled={!canContinue}
         onClick={handleContinue}
-        className="mt-6 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+        className={`self-center w-1/2 sm:w-1/3  p-4 rounded-lg transition ${
+          canContinue
+            ? "bg-accept-green text-on-primary font-bold hover:bg-accept-greenH shadow-sm"
+            : "bg-surfaceV text-outline cursor-not-allowed"
+        }`}
       >
         Continue
       </button>

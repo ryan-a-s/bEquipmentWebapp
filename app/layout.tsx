@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Roboto } from "next/font/google";
+import { Roboto_Flex } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from '../context/AppContext'
 
-const roboto = Roboto({
+const robotoFlex = Roboto_Flex({
   subsets: ["latin"],
 });
 
@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={robotoFlex.className}>
       <body
         className={` antialiased`}
       >

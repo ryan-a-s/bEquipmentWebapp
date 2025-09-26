@@ -8,17 +8,20 @@
   --on-primary: rgb(255 255 255);
   --inverse-primary: rgb(164 201 255);
   --primary-container: rgb(41 118 199);
+  --surface: rgb(252 248 248);
   --on-surface: rgb(28 27 27);
   --on-surface-variant: rgb(67 71 73);
   --surface-container-high: rgb(235 231 231);
   --surface-container-highest: rgb(229 226 225);
   --surface-container-lowest: rgb(255 255 255);
-  --surface-variant: rgb(224 227 229);
+  --surface-variant: #F6F3F2;
   --outline: rgb(116 120 122);
   --outline-variant: rgb(196 199 201);
   --accept-green: #73C322;
   --accept-greenH: #6EBC20;
-
+  --alert-yellow: #FEF9C2;
+  --on-alert: #754100;
+  --error: #DC3132;
 }
 
 
@@ -29,6 +32,7 @@
   --color-on-primary: var(--on-primary);
   --color-primaryI: var(--inverse-primary);
   --color-primaryC: var(--primary-container);
+  --color-surface: var(--surface);
   --color-on-surface: var(--on-surface);
   --color-on-surfaceV: var(--on-surface-variant);
   --color-surfaceHigh: var(--surface-container-high);
@@ -39,6 +43,9 @@
   --color-outlineV: var(--outline-variant);
   --color-accept-green: var(--accept-green);
   --color-accept-greenH: var(--accept-greenH);
+  --color-alert-yellow: var(--alert-yellow);
+  --color-on-alert: var(--on-alert);
+  --color-error: var(--error);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -51,5 +58,5 @@
 body {
   background: var(--background);
   color: var(--on-surface);
-  font-family: "Roboto", sans-serif;
+  font-family: "Roboto Flex", sans-serif;
 }

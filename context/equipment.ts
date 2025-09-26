@@ -84,7 +84,7 @@ export const equipmentList: EquipmentItem[] = [
     width: 127,
     location: [...sites.Wellington, ...sites.Hutt],
     procurement: { Wellington: 'Department based supplies via imprest', Hutt: 'Department based supplies via imprest' },
-    notes: 'May require 2 pumps to ensure correct inflation. Request ',
+    notes: 'May require 2 pumps to ensure correct inflation.',
   },
   
   {

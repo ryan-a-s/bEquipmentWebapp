@@ -10,8 +10,8 @@ type Props = {
 
 // Weight categories for Emergency Departments
 const edWeightCategories: { label: string; min: number; max: number | null }[] = [
-  { label: "180 – 250 kg", min: 180, max: 250 },
-  { label: "250 – 350 kg", min: 250, max: 350 },
+  { label: "180 – 250kg", min: 180, max: 250 },
+  { label: "250 – 350kg", min: 250, max: 350 },
   { label: "350+ kg", min: 350, max: null },
 ];
 
@@ -92,40 +92,53 @@ export default function WeightStep({ onNext }: Props) {
     }
   };
 
-  return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Patient Weight</h2>
+    // Continue button enabled logic
+  const canContinue = isWard
+    ? Boolean(inputWeight && dependencyStatus)
+    : selectedCategory !== null;
 
+
+  return (
+    <div className="flex flex-col">
+      <h2 className="pb-2 text-lg font-medium">Patient Weight</h2>
+
+      
       {/* Ward input */}
       {isWard && (
         <>
-          <input
-            type="number"
-            value={inputWeight}
-            onChange={(e) => setInputWeight(e.target.value)}
-            placeholder="Enter weight in kg"
-            className="border p-2 rounded w-full max-w-xs"
-          />
-
-          <div className="mt-4">
-            <h3 className="font-semibold mb-2">Patient Dependency</h3>
+          <div className="pb-8">
+            <input
+              type="number"
+              value={inputWeight}
+              onChange={(e) => setInputWeight(e.target.value)}
+              className={`
+                  border-2 border-outline px-2 py-4 w-full rounded-lg 
+                  focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary
+                  ${inputWeight ? "bg-primaryC border-primaryC hover:bg-primary text-on-primary font-bold" : "text-on-surfaceV bg-surfaceHigh hover:bg-surfaceHighest"}
+                `}
+                placeholder="Enter weight in kg"
+            />
+          </div>
+       
+          <div className="pb-8">
+            <h2 className="pb-2 text-lg font-medium">Patient Dependency</h2>
             <div className="flex gap-4">
               <button
-                onClick={() => setDependencyStatus("independent")}
-                className={`px-4 py-2 rounded-lg ${
-                  dependencyStatus === "independent"
-                    ? "bg-blue-200 border border-blue-600"
-                    : "bg-gray-100 hover:bg-gray-200"
+                onClick={() => setDependencyStatus("Independent")}
+                className={`p-4 rounded-lg shadow-sm w-full transition  ${
+                  dependencyStatus === "Independent"
+                    ? "bg-primaryC text-on-primary font-bold"
+                    : "bg-surfaceHigh hover:bg-surfaceHighest"
                 }`}
               >
                 Independent
               </button>
               <button
-                onClick={() => setDependencyStatus("dependent")}
-                className={`px-4 py-2 rounded-lg ${
-                  dependencyStatus === "dependent"
-                    ? "bg-blue-200 border border-blue-600"
-                    : "bg-gray-100 hover:bg-gray-200"
+                onClick={() => setDependencyStatus("Dependent")}
+                className={`p-4 rounded-lg shadow-sm w-full transition ${
+                  dependencyStatus === "Dependent"
+                    ? "bg-primaryC text-on-primary font-bold"
+                    : "bg-surfaceHigh hover:bg-surfaceHighest"
                 }`}
               >
                 Dependent
@@ -137,15 +150,15 @@ export default function WeightStep({ onNext }: Props) {
 
       {/* ED weight categories */}
       {isED && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-md">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 gap-x-2 w-full pb-8">
           {edWeightCategories.map((cat, idx) => (
             <button
               key={idx}
               onClick={() => setSelectedCategory(idx)}
-              className={`p-2 border rounded ${
+              className={`p-4 rounded-lg shadow-sm w-full transition ${
                 selectedCategory === idx
-                  ? "bg-blue-200 border-blue-600"
-                  : "bg-gray-100 hover:bg-gray-200"
+                  ? "bg-primaryC text-on-primary font-bold"
+                  : "bg-surfaceHigh hover:bg-surfaceHighest"
               }`}
             >
               {cat.label}
@@ -155,8 +168,13 @@ export default function WeightStep({ onNext }: Props) {
       )}
 
       <button
+        disabled={!canContinue}
         onClick={handleNext}
-        className="mt-6 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+        className={`self-center w-1/2 sm:w-1/3  p-4 rounded-lg transition ${
+          canContinue
+            ? "bg-accept-green text-on-primary font-bold hover:bg-accept-greenH shadow-sm"
+            : "bg-surfaceV text-outline cursor-not-allowed"
+        }`}
       >
         Continue
       </button>

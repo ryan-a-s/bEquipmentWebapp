@@ -80,7 +80,7 @@ export default function Main() {
               w-full px-4 py-2 flex justify-between items-center text-xl font-bold
               ${activeStep === step.id || step.completed
                 ? "text-on-primary bg-primary hover:bg-primaryC"
-                : "text-on-primary bg-primaryI text-gray-500"}
+                : "text-on-primary bg-primaryI"}
             `}
             onClick={() => setActiveStep(activeStep === step.id ? 0 : step.id)}
           >
