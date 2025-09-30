@@ -82,7 +82,7 @@ const allCategories = [...requiredCategories, ...optionalCategories];
       }
     } else if (equipment.Hovermat) {
       selectedPump =
-        exactWeight >= 380
+        exactWeight >= 350
           ? '2x Air Supply for Hovermat'
           : 'Air Supply for Hovermat';
     }
@@ -164,7 +164,7 @@ const allCategories = [...requiredCategories, ...optionalCategories];
     <div className="flex flex-col space-y-4">
       {isED && (
         <div className='p-2 flex justify-content-center gap-2 bg-alert-yellow rounded-lg'>
-          <Image className="dark:invert" src={`${BASE_PATH}/warning.svg`} alt="Warning Icon" width={24} height={24}/>
+          <Image className="" src={`${BASE_PATH}/warning.svg`} alt="Warning Icon" width={24} height={24}/>
           <p className="text-on-alert tracking-tight">
             If your patient is likely to be in ED for an extended period of time, contact
             M&amp;H specialist for advice on other equipment requirements.
@@ -188,7 +188,7 @@ const allCategories = [...requiredCategories, ...optionalCategories];
             {/* Extra info for Bed + Mattress */}
             {category === 'Bed + Mattress' && (
               <div className='p-2 flex justify-content-center gap-2 bg-alert-yellow rounded-lg'>
-                <Image className="dark:invert" src={`${BASE_PATH}/warning.svg`} alt="Warning Icon" width={24} height={24}/>
+                <Image className="" src={`${BASE_PATH}/warning.svg`} alt="Warning Icon" width={24} height={24}/>
                 <p className="text-on-alert tracking-tight">
                   May need to consider alternative mattresses for pressure care or turning assist. 
                   Follow usual ordering processes for these alternative mattresses.
@@ -199,7 +199,7 @@ const allCategories = [...requiredCategories, ...optionalCategories];
             {/* Extra info for Walking Aids + Independent */}
             {category === 'Walking Aids' && dependencyStatus === 'Independent' && (
               <div className='p-2 flex justify-content-center gap-2 bg-alert-yellow rounded-lg'>
-                <Image className="dark:invert" src={`${BASE_PATH}/warning.svg`} alt="Warning Icon" width={24} height={24}/>
+                <Image className="" src={`${BASE_PATH}/warning.svg`} alt="Warning Icon" width={24} height={24}/>
                 <p className="text-on-alert tracking-tight">
                   Consider the patient&apos;s usual walking aid, refer to physio if mobility
                   levels have changed.
@@ -210,7 +210,7 @@ const allCategories = [...requiredCategories, ...optionalCategories];
             {/* Extra info for Slings */}
             {category === 'Slings' && (
               <div className='p-2 flex justify-content-center gap-2 bg-alert-yellow rounded-lg'>
-                <Image className="dark:invert" src={`${BASE_PATH}/warning.svg`} alt="Warning Icon" width={24} height={24}/>
+                <Image className="" src={`${BASE_PATH}/warning.svg`} alt="Warning Icon" width={24} height={24}/>
                 <p className="text-on-alert tracking-tight">
                   Other slings may be available with various SWL and width, check with CEP and refer to OT.
                 </p>
@@ -220,7 +220,7 @@ const allCategories = [...requiredCategories, ...optionalCategories];
             {/* If category is empty (no equipment in SWL) */}
             {isEmptyCategory(category) && (
               <div className='p-2 flex justify-content-center gap-2 bg-error rounded-lg'>
-                <Image className="dark:invert" src={`${BASE_PATH}/error.svg`} alt="Error Icon" width={24} height={24}/>
+                <Image className="" src={`${BASE_PATH}/error.svg`} alt="Error Icon" width={24} height={24}/>
                 <p className="text-on-primary tracking-tight">
                   No available {category.toLowerCase()} under the patient’s weight limit.
                   Please get in contact with moving and handling specialist.
@@ -309,7 +309,7 @@ const allCategories = [...requiredCategories, ...optionalCategories];
       <button
         disabled={!canContinue}
         onClick={handleContinue}
-        className={`self-center w-1/2 sm:w-1/3  p-4 rounded-lg transition ${
+        className={`self-center w-1/2 sm:w-1/3  p-4 mt-4 rounded-lg transition ${
           canContinue
             ? "bg-accept-green text-on-primary font-bold hover:bg-accept-greenH shadow-sm"
             : "bg-surfaceV text-outline cursor-not-allowed"

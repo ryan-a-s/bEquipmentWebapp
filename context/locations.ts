@@ -25,6 +25,7 @@ export const sites = {
   Hutt: ["F3S638-G", "F06034-A"] as LocationCode[],
   Wards: ["F06033-K","F06034-A"] as LocationCode[],
   HuttED: ["F3S638-G"] as LocationCode[],
+  WellingtonED: ["F3M163-E"] as LocationCode[],
 };
 
 // check if location is a ward

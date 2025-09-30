@@ -107,7 +107,7 @@ export default function ReviewPage() {
             </div>
           )}
         </section>
-        <div className="flex justify-around gap-4">
+        <div className="flex justify-evenly gap-4">
           <button
           className=" w-1/2 sm:w-1/3  p-4 rounded-lg transition bg-primary text-on-primary font-bold hover:bg-primaryC shadow-sm"
           onClick={handleBack}

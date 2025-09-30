@@ -59,6 +59,16 @@ export default function WeightStep({ onNext }: Props) {
       const weightNum = parseInt(inputWeight, 10);
       if (isNaN(weightNum) || weightNum <= 0) return;
 
+      if (
+        location.startsWith("F06034-A") && // Hutt Ward)
+        dependencyStatus === "Dependent" &&
+        weightNum > 300
+      ) {
+        setNextWeight({ min: weightNum, max: weightNum });
+        setAlertMessage(edAlerts["F3S638-G"]?.message ?? "Not allowed at Hutt Wards.");
+        return;
+      }
+
       setPatientWeight({ min: weightNum, max: weightNum });
       onNext();
     } else if (isED) {
@@ -108,15 +118,18 @@ export default function WeightStep({ onNext }: Props) {
         <>
           <div className="pb-8">
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={3}
               value={inputWeight}
-              onChange={(e) => setInputWeight(e.target.value)}
+              onChange={(e) => setInputWeight(e.target.value.replace(/\D/g, ""))}
+              placeholder="Enter weight in kg"
               className={`
-                  border-2 border-outline px-2 py-4 w-full rounded-lg 
-                  focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary
-                  ${inputWeight ? "bg-primaryC border-primaryC hover:bg-primary text-on-primary font-bold" : "text-on-surfaceV bg-surfaceHigh hover:bg-surfaceHighest"}
+                  border-2 border-outline px-2 py-4 w-full rounded-lg focus:outline-none focus:border-primary 
+                  ${inputWeight ? "bg-primaryC border-primaryC border-2 hover:bg-primary text-on-primary font-bold" 
+                    : "text-on-surfaceV bg-surfaceHigh hover:bg-surfaceHighest"}
                 `}
-                placeholder="Enter weight in kg"
             />
           </div>
        
